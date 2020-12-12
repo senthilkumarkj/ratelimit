@@ -5,6 +5,7 @@ import (
 	"expvar"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/http/pprof"
 	"path/filepath"
@@ -142,6 +143,12 @@ func (server *server) startGrpc() {
 	if err != nil {
 		logger.Fatalf("Failed to listen for gRPC: %v", err)
 	}
+	// The default number of concurrent streams/requests on a client connection
+	// is 100, while the server is unlimited. The client setting can only be
+	// controlled by adjusting the server value. Set a very large value for the
+	// server value so that we have no fixed limit on the number of concurrent
+	// streams/requests on either the client or server.
+	server.grpcServer.MaxConcurrentStreams(math.MaxInt32)
 	server.grpcServer.Serve(lis)
 }
 
